@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NEC Expo Stand Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one column, sticky tab bar, cards of drawings and renders, each with a pick toggle and a notes box */
+:root{
+  --bg:#ffffff; --panel:#eef4ef; --ink:#16261C; --muted:#50795F; --line:#d6e2d8;
+  --forest:#1F3D28; --honey:#C08B41; --honey-soft:#f4e7d3; --pick:#2B5336; --pick-ink:#ffffff;
+  --card:#ffffff; --shadow:0 1px 2px rgba(22,38,28,.06);
+  --font:"Poppins",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121c16; --panel:#1a2820; --ink:#e8efe9; --muted:#9db8a4; --line:#2c3d32;
+  --forest:#0e1a12; --honey:#D6A868; --honey-soft:#33291b; --pick:#8fae86; --pick-ink:#10180f;
+  --card:#17231b; --shadow:none; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121c16; --panel:#1a2820; --ink:#e8efe9; --muted:#9db8a4; --line:#2c3d32;
+  --forest:#0e1a12; --honey:#D6A868; --honey-soft:#33291b; --pick:#8fae86; --pick-ink:#10180f;
+  --card:#17231b; --shadow:none; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 64px}
+header.top{background:var(--forest);color:#fff;padding-inline:20px;padding-block:28px 22px}
+header.top .in{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px 32px;align-items:flex-end;justify-content:space-between}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#D6A868;margin:0 0 6px}
+h1{font-size:clamp(24px,3.4vw,34px);line-height:1.15;margin:0;text-wrap:balance}
+h1 span{color:#D6A868}
+.meta{font-size:13px;color:#c9d8cd;margin:0}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav.tabs .in{max-width:1180px;margin:0 auto;padding-inline:20px;display:flex;gap:4px;overflow-x:auto}
+nav.tabs button{font:600 14px var(--font);color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;padding:14px 14px 11px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--honey)}
+nav.tabs button:focus-visible,.btn:focus-visible,.pick:focus-visible,textarea:focus-visible{outline:2px solid var(--honey);outline-offset:2px}
+section.tab{padding-block:28px 0}
+.intro{max-width:70ch;margin:0 0 22px;color:var(--ink)}
+.intro b{color:var(--forest)}
+:root[data-theme="dark"] .intro b{color:var(--honey)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .intro b{color:var(--honey)}}
+h2{font-size:20px;margin:28px 0 12px;text-wrap:balance}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.card.picked{border-color:var(--pick);box-shadow:0 0 0 2px var(--pick)}
+.card .img{background:var(--panel);border-bottom:1px solid var(--line);display:block}
+.card .img img{display:block;width:100%;height:auto}
+.card .imgs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.card .imgs img{display:block;width:100%;height:auto;background:var(--panel)}
+.card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tag{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--honey)}
+.card h3{font-size:16px;margin:0;line-height:1.3}
+.card p{margin:0;font-size:14px}
+.pros{font-size:13.5px;margin:0;padding-left:18px;color:var(--ink)}
+.pros li+li{margin-top:2px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font:600 13px var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--honey)}
+.pick{font:600 13px var(--font);border:1px solid var(--pick);background:transparent;color:var(--pick);border-radius:999px;padding:7px 14px;cursor:pointer}
+.pick[aria-pressed="true"]{background:var(--pick);color:var(--pick-ink)}
+.note label{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px}
+textarea{width:100%;min-height:76px;resize:vertical;font:14px/1.45 var(--font);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+.status{font-size:12px;color:var(--muted);min-height:1em}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.qs{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
+.q{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.q h3{font-size:15px;margin:0}
+.banner{border-left:3px solid var(--honey);background:var(--honey-soft);padding:10px 14px;border-radius:0 8px 8px 0;font-size:13.5px;margin:0 0 18px;max-width:80ch}
+.summary{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.chip{font-size:12.5px;font-weight:600;border:1px solid var(--pick);color:var(--pick);border-radius:999px;padding:4px 11px}
+.empty{font-size:13.5px;color:var(--muted)}
+footer{margin-top:40px;font-size:12.5px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+<style>
+@media (max-width:560px){header.top{padding-block:22px 18px}nav.tabs button{padding:12px 10px 9px;font-size:13px}.wrap{padding-inline:16px}h2{font-size:18px}.card .imgs{grid-template-columns:1fr}.btn,.pick{padding:9px 14px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div>
+    <p class="kicker">Land Leisure and Tourism Show · NEC · 4 to 5 Nov 2026</p>
+    <h1>Our two stands, <span>planned</span></h1>
+  </div>
+  <p class="meta">Prepared by Nikki · 14 Oct 2026 · for Millie to pick and comment</p>
+</div></header>
+
+<nav class="tabs" aria-label="Sections"><div class="in" role="tablist">
+  <button role="tab" id="t-official" aria-controls="official" aria-selected="true">1 · Official plan</button>
+  <button role="tab" id="t-layouts" aria-controls="layouts" aria-selected="false">2 · Layout options</button>
+  <button role="tab" id="t-renders" aria-controls="renders" aria-selected="false">3 · Renders</button>
+  <button role="tab" id="t-notes" aria-controls="notes" aria-selected="false">Your picks and notes</button>
+</div></nav>
+
+<main class="wrap">
+<p class="banner">Your picks and notes are kept on this device as you go. When you are done, open the last tab and tap <b>Send to Nikki</b> or <b>Copy</b>.</p>
+
+<!-- TAB 1 -->
+<section class="tab" id="official" role="tabpanel" aria-labelledby="t-official">
+  <p class="intro">These are the drawings for the organiser. Download them to send to Greg, or <b>tick "Use this"</b> and leave a note if anything needs changing first. Red <b>H</b> tags on the drawings are holds: measurements we still need.</p>
+  <div class="grid wide">
+    <article class="card" data-key="official_village">
+      <div class="imgs"><img src="site_plan_v1/vil-1.jpg" alt="Cover page of the Village stand drawing pack" loading="lazy"><img src="site_plan_v1/vil-2.jpg" alt="Village stand plan and front elevation, sheet BSUK-LLT-101" loading="lazy"></div>
+      <div class="body">
+        <span class="tag">BSUK-LLT-101 · Rev P2</span>
+        <h3>Holiday Park Village stand · 6 x 5 m</h3>
+        <p>Cover page plus the plan and front elevation: sauna trailer, round hot tub and lounge, all inside the stand.</p>
+        <div class="actions"><a class="btn" href="site_plan_v1/village_stand_drawings_P2.pdf" download>Download PDF</a></div>
+      </div>
+    </article>
+    <article class="card" data-key="official_vale">
+      <div class="img"><img src="site_plan_v1/vale-1.jpg" alt="Vale Hot Tubs stand LLT455 plan and elevation" loading="lazy"></div>
+      <div class="body">
+        <span class="tag">VALE-LLT455-01 · Rev P2</span>
+        <h3>Hall stand LLT455 · Vale Hot Tubs · 3 x 3 m</h3>
+        <p>Square hot tub, two screens on the backdrop and an info stand. Its own title block, no Barrel Sauna UK name on it.</p>
+        <div class="actions"><a class="btn" href="site_plan_v1/vale_llt455_drawing_P2.pdf" download>Download PDF</a></div>
+      </div>
+    </article>
+    <article class="card" data-key="official_aerial">
+      <div class="img"><img src="site_plan_v1/aer-1.jpg" alt="Aerial map of both stands in the hall" loading="lazy"></div>
+      <div class="body">
+        <span class="tag">Aerial map · v5</span>
+        <h3>Both stands from above</h3>
+        <p>From Greg's latest hall plan: Vale on LLT455, straight across the 3 m aisle from our village space.</p>
+        <div class="actions"><a class="btn" href="site_plan_v1/aerial_map_v5.pdf" download>Download PDF</a></div>
+      </div>
+    </article>
+  </div>
+
+  <h2>Questions only you can answer</h2>
+  <div class="qs">
+    <div class="q" data-key="q_picnic" data-noteonly><h3>Is the picnic seating definitely next to our village space?</h3></div>
+    <div class="q" data-key="q_vale_tub" data-noteonly><h3>What size is the square tub being ordered for Vale?</h3></div>
+    <div class="q" data-key="q_trailer" data-noteonly><h3>Trailer: full length with towbar and steps, width across the wheels, and roof height?</h3></div>
+    <div class="q" data-key="q_ofuro" data-noteonly><h3>Is the Ofuro still coming, now there's a hot tub on both stands?</h3></div>
+  </div>
+</section>
+
+<!-- TAB 2 -->
+<section class="tab" id="layouts" role="tabpanel" aria-labelledby="t-layouts" hidden>
+  <p class="intro">Five ways to lay out the 6 x 5 m village stand, all to scale, all keeping the trailer and towbar inside the stand with a 1 m path to the sauna. <b>Pick one</b> (or more) and say what you'd change.</p>
+  <div class="grid">
+    <article class="card" data-key="layout_A"><div class="img"><img src="site_plan_v1/layout_option_A.png" alt="Option A plan" loading="lazy"></div><div class="body">
+      <span class="tag">Option A</span><h3>Sauna left, tub back right, lounge front right</h3>
+      <ul class="pros"><li>Glass end faces the village walkway</li><li>Full lounge fits: sofa, rug, bean bags, tables</li><li>Lounge sits next to the busy picnic area</li></ul></div></article>
+    <article class="card" data-key="layout_A2"><div class="img"><img src="site_plan_v1/layout_option_A2.png" alt="Option A mirrored plan" loading="lazy"></div><div class="body">
+      <span class="tag">Option A mirrored</span><h3>Sauna next to the picnic area</h3>
+      <ul class="pros"><li>Same as A, flipped</li><li>Picnic crowd sees the sauna first</li><li>Lounge is quieter, on the far side</li></ul></div></article>
+    <article class="card" data-key="layout_A3"><div class="img"><img src="site_plan_v1/layout_option_A3.png" alt="Option A plus Ofuro plan" loading="lazy"></div><div class="body">
+      <span class="tag">Option A plus Ofuro</span><h3>Your original brief</h3>
+      <ul class="pros"><li>Hot tub, Ofuro and sofa all fit</li><li>No room for bean bags or the rug</li><li>Most product on show</li></ul></div></article>
+    <article class="card" data-key="layout_B"><div class="img"><img src="site_plan_v1/layout_option_B.png" alt="Option B plan" loading="lazy"></div><div class="body">
+      <span class="tag">Option B</span><h3>No hot tub: Ofuro and full lounge</h3>
+      <ul class="pros"><li>Roomiest lounge and the Come Chill &amp; Chat sign</li><li>Breaks Liam's "hot tub on both stands"</li></ul></div></article>
+    <article class="card" data-key="layout_C"><div class="img"><img src="site_plan_v1/layout_option_C.png" alt="Option C plan" loading="lazy"></div><div class="body">
+      <span class="tag">Option C</span><h3>Trailer across the back</h3>
+      <ul class="pros"><li>Big open front for the tub and lounge</li><li>Walkway sees the full length of the barrel</li><li>Glass faces the picnic side, not the walkway</li><li>The layout the renders are based on</li></ul></div></article>
+  </div>
+</section>
+
+<!-- TAB 3 -->
+<section class="tab" id="renders" role="tabpanel" aria-labelledby="t-renders" hidden>
+  <p class="banner">These are AI renders to show the feel. Liam signs off any AI image before it goes public. The logo on the signboard is the AI's copy, not our real file.</p>
+  <p class="intro">Barrel Sauna UK first, two views of the same dressed stand: black wall, lit signboard, canopy of hanging plants and fairy lights, honey-wood bar table, robes on our peg hangers, black logo mats and a bark border. <b>Pick the view you prefer</b> and note anything to add or drop. Vale follows, in its own calm, light style.</p>
+  <div class="grid wide">
+    <article class="card" data-key="render_front"><div class="img"><img src="site_plan_v1/render_front_view.jpg" alt="Render of the village stand from the front" loading="lazy"></div><div class="body">
+      <span class="tag">Render 1 · front view</span><h3>Glass end to the walkway, lounge in the middle</h3>
+      <div class="actions"><a class="btn" href="site_plan_v1/render_front_view.jpg" download>Download</a><a class="btn" href="https://cdn.gamma.app/pz0mebb82mw2x1v/design-anything/agxphp1KFibONhv9RbATF/1WRpHcU_PTXdhEb-3wa3K.jpg" target="_blank" rel="noopener">Open full size</a></div></div></article>
+    <article class="card" data-key="render_corner"><div class="img"><img src="site_plan_v1/render_corner_view.jpg" alt="Render of the village stand from the corner" loading="lazy"></div><div class="body">
+      <span class="tag">Render 2 · corner view</span><h3>Trailer across the back, tub front left</h3>
+      <div class="actions"><a class="btn" href="site_plan_v1/render_corner_view.jpg" download>Download</a><a class="btn" href="https://cdn.gamma.app/pz0mebb82mw2x1v/design-anything/tP0eiaqIWQWITcrwRjWFZ/pC_pTwk7z_oCm_MUHrgy3.jpg" target="_blank" rel="noopener">Open full size</a></div></div></article>
+    <article class="card" data-key="render_vale_front"><div class="img"><img src="site_plan_v1/vale_render_front.jpg" alt="Render of the Vale Hot Tubs stand from the front" loading="lazy"></div><div class="body">
+      <span class="tag">Vale · front view</span><h3>Vale Hot Tubs, LLT455 · calm wellness</h3>
+      <p>Floating oak laminate platform with an LED edge, glowing fluted panels in a birch frame, halo-lit VALE wordmark, one square tub on a white plinth.</p>
+      <div class="actions"><a class="btn" href="site_plan_v1/vale_render_front.jpg" download>Download</a><a class="btn" href="https://cdn.gamma.app/pz0mebb82mw2x1v/design-anything/TgRLUmCh6B9ehDFEaBQvS/xXNR-JzgyAIvxFlXTCxAE.jpg" target="_blank" rel="noopener">Open full size</a></div></div></article>
+    <article class="card" data-key="render_vale_corner"><div class="img"><img src="site_plan_v1/vale_render_corner.jpg" alt="Render of the Vale Hot Tubs stand from the corner" loading="lazy"></div><div class="body">
+      <span class="tag">Vale · corner view</span><h3>Same stand from the front right</h3>
+      <p>Budget build: timber frame and OSB platform in click laminate, fluted polycarbonate sheets with LED strip behind, foamex wordmark with LED halo.</p>
+      <div class="actions"><a class="btn" href="site_plan_v1/vale_render_corner.jpg" download>Download</a><a class="btn" href="https://cdn.gamma.app/pz0mebb82mw2x1v/design-anything/UAFKBC6codSzmie4vUCRy/6PKy6Y54AMHC7CIpgRVYm.jpg" target="_blank" rel="noopener">Open full size</a></div></div></article>
+  </div>
+</section>
+
+<!-- TAB 4 -->
+<section class="tab" id="notes" role="tabpanel" aria-labelledby="t-notes" hidden>
+  <h2 style="margin-top:0">Your picks so far</h2>
+  <div class="summary" id="summary"><span class="empty">Nothing picked yet. Use the "Use this" buttons on the other tabs.</span></div>
+  <h2>Anything else</h2>
+  <div class="panel" data-key="general" data-noteonly></div>
+  <h2>Send your choices</h2>
+  <div class="actions"><a class="btn" id="wa" href="#" target="_blank" rel="noopener">Send to Nikki on WhatsApp</a><button type="button" class="btn" id="copy">Copy picks and notes</button></div>
+  <pre id="out" class="panel" style="white-space:pre-wrap;font:13px/1.5 var(--font);margin-top:12px;overflow-x:auto"></pre>
+</section>
+
+<footer>Barrel Sauna UK · internal planning page · site plan version 1 · drawings are preliminary and not for construction</footer>
+</main>
+
+<script>
+(function(){
+  const LABELS={official_village:"Village drawings",official_vale:"Vale drawing",official_aerial:"Aerial map",layout_A:"Option A",layout_A2:"Option A mirrored",layout_A3:"Option A plus Ofuro",layout_B:"Option B",layout_C:"Option C",render_front:"Render 1 front view",render_corner:"Render 2 corner view",render_vale_front:"Vale front view",render_vale_corner:"Vale corner view",q_picnic:"Picnic seating next to us?",q_vale_tub:"Vale tub size",q_trailer:"Trailer measurements",q_ofuro:"Ofuro still coming?",general:"General notes"};
+  const KEY='bsuk_site_plan_v1';
+  let state={};
+  try{state=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){state={}}
+  function persist(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+  const tabs=[...document.querySelectorAll('[role=tab]')];
+  function show(id){tabs.forEach(t=>{const on=t.getAttribute('aria-controls')===id;t.setAttribute('aria-selected',on);document.getElementById(t.getAttribute('aria-controls')).hidden=!on});
+    if(id==='notes')renderOut();}
+  tabs.forEach(t=>t.addEventListener('click',()=>{const id=t.getAttribute('aria-controls');show(id);try{history.replaceState(null,'','#'+id)}catch(e){}const n=document.querySelector('nav.tabs');window.scrollTo({top:Math.max(0,n.offsetTop)})}));
+  const h=(location.hash||'').slice(1); show(tabs.some(t=>t.getAttribute('aria-controls')===h)?h:'official');
+  function setPick(el,pk,v){pk.setAttribute('aria-pressed',v);pk.textContent=v?'Picked ✓':'Use this';el.classList.toggle('picked',v)}
+  document.querySelectorAll('[data-key]').forEach(el=>{
+    const key=el.dataset.key,noteOnly=el.hasAttribute('data-noteonly'),host=el.querySelector('.body')||el;
+    const box=document.createElement('div');box.className='note';const id='note-'+key;
+    box.innerHTML=(noteOnly?'':'<div class="actions" style="margin-bottom:8px"><button type="button" class="pick" aria-pressed="false">Use this</button></div>')+
+      '<label for="'+id+'">'+(noteOnly?(key==='general'?'General notes, ideas or changes':'Your answer'):'Comments or changes')+'</label><textarea id="'+id+'" placeholder="'+(noteOnly?'Type here':'What would you change?')+'"></textarea><div class="status" aria-live="polite"></div>';
+    host.appendChild(box);
+    const ta=box.querySelector('textarea'),st=box.querySelector('.status'),pk=box.querySelector('.pick');
+    const s=state[key]||{}; ta.value=s.note||''; if(pk&&s.pick)setPick(el,pk,true);
+    let t=null;
+    ta.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>{state[key]=Object.assign({},state[key],{note:ta.value});persist();st.textContent='Kept on this device'},500)});
+    if(pk)pk.addEventListener('click',()=>{const v=pk.getAttribute('aria-pressed')!=='true';setPick(el,pk,v);state[key]=Object.assign({},state[key],{pick:v});persist();renderSummary()});
+  });
+  function renderSummary(){const s=document.getElementById('summary');const p=Object.keys(LABELS).filter(k=>state[k]&&state[k].pick);s.innerHTML='';
+    if(!p.length){s.innerHTML='<span class="empty">Nothing picked yet. Use the "Use this" buttons on the other tabs.</span>';return}
+    p.forEach(k=>{const c=document.createElement('span');c.className='chip';c.textContent=LABELS[k];s.appendChild(c)})}
+  function text(){const lines=['Expo site plan v1, Millie\'s choices',''];
+    const p=Object.keys(LABELS).filter(k=>state[k]&&state[k].pick);lines.push('Picked: '+(p.length?p.map(k=>LABELS[k]).join(', '):'nothing yet'));
+    Object.keys(LABELS).forEach(k=>{const n=state[k]&&(state[k].note||'').trim();if(n)lines.push('','- '+LABELS[k]+': '+n)});return lines.join('\n')}
+  function renderOut(){renderSummary();const t=text();document.getElementById('out').textContent=t;document.getElementById('wa').href='https://wa.me/?text='+encodeURIComponent(t)}
+  document.getElementById('copy').addEventListener('click',async e=>{const b=e.currentTarget,t=text();
+    try{await navigator.clipboard.writeText(t);b.textContent='Copied'}catch(err){const r=document.createRange();r.selectNodeContents(document.getElementById('out'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);b.textContent='Selected, press copy'}
+    setTimeout(()=>b.textContent='Copy picks and notes',2500)});
+  renderSummary();
+})();
+</script>
+</body>
+</html>
