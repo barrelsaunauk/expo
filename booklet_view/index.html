@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BSUK expo booklet v4</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#fff;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#1F3D28;overflow:hidden}
+.top{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:13px;font-weight:700;letter-spacing:.06em}
+.top span{color:#C08B41;font-weight:600;letter-spacing:0}
+.stage{position:absolute;top:44px;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;padding:6px 6px 14px;touch-action:pan-y pinch-zoom}
+.stage img{max-width:100%;max-height:100%;width:auto;height:auto;box-shadow:0 2px 14px rgba(0,0,0,.18);user-select:none;-webkit-user-drag:none}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:64px;border:0;background:rgba(31,61,40,.75);color:#fff;font-size:26px;cursor:pointer;z-index:2;border-radius:8px}
+.nav:disabled{opacity:.2}
+.prev{left:4px}.next{right:4px}
+</style></head><body>
+<div class="top">BARREL SAUNA UK · EXPO BOOKLET <span id="n">1 / 20</span></div>
+<div class="stage" id="s"><img id="pg" alt="Booklet page"></div>
+<button class="nav prev" id="b" aria-label="Previous page">‹</button>
+<button class="nav next" id="f" aria-label="Next page">›</button>
+<script>
+var N=20,i=0,img=document.getElementById('pg'),cache=[];
+function src(k){return 'p'+String(k+1).padStart(2,'0')+'.jpg';}
+function show(){img.src=src(i);document.getElementById('n').textContent=(i+1)+' / '+N;
+document.getElementById('b').disabled=i==0;document.getElementById('f').disabled=i==N-1;
+[i+1,i+2].forEach(function(k){if(k<N&&!cache[k]){cache[k]=new Image();cache[k].src=src(k);}});}
+function go(d){var j=i+d;if(j>=0&&j<N){i=j;show();}}
+document.getElementById('b').onclick=function(){go(-1)};document.getElementById('f').onclick=function(){go(1)};
+addEventListener('keydown',function(e){if(e.key=='ArrowRight')go(1);if(e.key=='ArrowLeft')go(-1);});
+var x0=null;var s=document.getElementById('s');
+s.addEventListener('touchstart',function(e){if(e.touches.length==1)x0=e.touches[0].clientX;},{passive:true});
+s.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>40)go(dx<0?1:-1);x0=null;});
+show();
+</script></body></html>
