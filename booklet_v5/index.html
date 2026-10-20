@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BSUK expo booklet v5</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#fff;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#1F3D28;overflow:hidden}
+.top{height:48px;display:flex;align-items:center;justify-content:center;gap:18px;font-size:13px;font-weight:700;letter-spacing:.14em}
+.top span{color:#C08B41;letter-spacing:.04em}
+.stage{position:absolute;top:48px;bottom:16px;left:80px;right:80px;display:flex;align-items:center;justify-content:center}
+.spread{display:flex;height:100%;max-width:100%;align-items:center;justify-content:center;box-shadow:0 6px 30px rgba(0,0,0,.18)}
+.spread img{height:100%;width:auto;max-width:50%;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none}
+.spread.single img{max-width:100%}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:56px;height:96px;border:0;background:#1F3D28;color:#fff;font-size:34px;cursor:pointer;border-radius:10px}
+.nav:hover{background:#2B5336}.nav:disabled{opacity:.15;cursor:default}
+.prev{left:12px}.next{right:12px}
+@media (max-width:800px){.stage{left:8px;right:8px}.nav{width:40px;height:64px;font-size:24px;background:rgba(31,61,40,.75)}.prev{left:2px}.next{right:2px}}
+</style></head><body>
+<div class="top">BARREL SAUNA UK · EXPO BOOKLET v5 <span id="n"></span></div>
+<div class="stage"><div class="spread" id="sp"></div></div>
+<button class="nav prev" id="b" aria-label="Previous">‹</button>
+<button class="nav next" id="f" aria-label="Next">›</button>
+<script>
+var N=22,v=0;
+function src(k){return 'p'+String(k).padStart(2,'0')+'.jpg';}
+function views(){ if(innerWidth<=800){var a=[];for(var k=1;k<=N;k++)a.push([k]);return a;}
+  var a=[[1]];for(var k=2;k<N;k+=2)a.push([k,k+1]);a.push([N]);return a;}
+var V=views();
+function show(){var p=V[v],sp=document.getElementById('sp');sp.className='spread'+(p.length==1?' single':'');
+ sp.innerHTML=p.map(function(k){return '<img src="'+src(k)+'" alt="Page '+k+'">';}).join('');
+ document.getElementById('n').textContent=p.length==1?('Page '+p[0]+' of '+N):('Pages '+p[0]+' and '+p[1]+' of '+N);
+ document.getElementById('b').disabled=v==0;document.getElementById('f').disabled=v==V.length-1;
+ (V[v+1]||[]).forEach(function(k){new Image().src=src(k);});}
+function go(d){var j=v+d;if(j>=0&&j<V.length){v=j;show();}}
+document.getElementById('b').onclick=function(){go(-1)};document.getElementById('f').onclick=function(){go(1)};
+addEventListener('keydown',function(e){if(e.key=='ArrowRight')go(1);if(e.key=='ArrowLeft')go(-1);});
+addEventListener('resize',function(){var first=V[v][0];V=views();v=V.findIndex(function(p){return p.indexOf(first)>=0;});show();});
+var x0=null;addEventListener('touchstart',function(e){if(e.touches.length==1)x0=e.touches[0].clientX;},{passive:true});
+addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>40)go(dx<0?1:-1);x0=null;});
+show();
+</script></body></html>
